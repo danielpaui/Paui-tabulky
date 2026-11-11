@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Jídelní deník</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jídelní deník">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F5F3;--surface:#FFFFFF;--ink:#16221F;--mute:#66736F;--line:#DCE3E0;--accent:#2F4FD8;--accent-ink:#FFFFFF;--over:#C2410C;--p:#2F4FD8;--c:#D99A1E;--f:#B5457A;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101715;--surface:#18221F;--ink:#E8EFEC;--mute:#8C9A95;--line:#2A3733;--accent:#7C93FF;--accent-ink:#0E1330;--over:#FB923C;--p:#7C93FF;--c:#E8B04A;--f:#E27AAE;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101715;--surface:#18221F;--ink:#E8EFEC;--mute:#8C9A95;--line:#2A3733;--accent:#7C93FF;--accent-ink:#0E1330;--over:#FB923C;--p:#7C93FF;--c:#E8B04A;--f:#E27AAE;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+main{max-width:520px;margin:0 auto;padding:16px 16px 80px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top h1{font-size:1rem;font-weight:600;margin:0;text-transform:capitalize}
+.nav{border:1px solid var(--line);background:var(--surface);border-radius:10px;width:40px;height:40px;font-size:1.1rem}
+.hero{margin:16px 0 8px;display:flex;flex-direction:column;align-items:center}.ring{position:relative;width:240px;height:240px}.ring svg{width:100%;height:100%;transform:rotate(-90deg)}.ring .tr{stroke:var(--line)}.ring .pr{transition:stroke-dashoffset .5s,stroke .5s}.ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.ctr .big{font-size:2.8rem}.ctr .big small{font-size:1.3rem;color:var(--mute);font-weight:600}
+.big{font-size:4.6rem;font-weight:800;line-height:1;letter-spacing:-.03em}
+.big.over{color:var(--over)}
+.cap{color:var(--mute);margin-top:4px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:16px 0}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s}
+.bar i.over{background:var(--over)}
+.macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.macros div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;border-top:3px solid var(--p)}
+.macros div:nth-child(2){border-top-color:var(--c)}
+.macros div:nth-child(3){border-top-color:var(--f)}
+.macros b{font-size:1.1rem;display:block}
+.macros span{color:var(--mute);font-size:.85rem}
+.goal{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:.9rem;margin-bottom:20px}
+.goal input{width:84px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 8px}
+.meal{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;padding:4px 14px 6px}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:10px 0}
+.mh h2{font-size:1.05rem;margin:0}
+.mh span{color:var(--mute);font-size:.9rem}
+.it{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.it div{flex:1;min-width:0}
+.it small{color:var(--mute);display:block}
+.it .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x{border:0;background:none;color:var(--mute);font-size:1.2rem;width:36px;height:36px}
+.add{width:100%;border:1px dashed var(--line);background:none;border-radius:10px;padding:10px;margin:6px 0 8px;color:var(--accent);font-weight:600}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.on{display:flex}
+.panel{background:var(--surface);width:100%;max-width:520px;max-height:85%;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.panel h3{margin:0 0 10px;font-size:1.1rem}
+.field{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:11px 12px;margin-bottom:8px}
+.res{display:flex;justify-content:space-between;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:11px 2px}
+.res small{color:var(--mute)}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:12px;font-weight:600;width:100%;margin-top:6px}
+.btn.alt{background:none;color:var(--accent);border:1px solid var(--line)}
+.lbl{font-size:.85rem;color:var(--mute);margin:4px 0}
+.hide{display:none}
+:root{--over:#DC2626;--ok:#2FA84F;--low:#E0A800}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--over:#F87171;--ok:#4ADE80;--low:#FACC15}}
+:root[data-theme="dark"]{--over:#F87171;--ok:#4ADE80;--low:#FACC15}
+.top h1{cursor:pointer;flex:1;text-align:center}
+.dn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;border:3px solid var(--line);font-size:.95rem}
+.wd.ok .dn,.md.ok .dn{border-color:var(--ok)}.wd.hi .dn,.md.hi .dn{border-color:var(--over)}.wd.lo .dn,.md.lo .dn{border-color:var(--low)}
+.month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:12px 0}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:-8px 0 6px}.mg label{font-size:.85rem;color:var(--mute);display:block}.mg input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 8px;margin-top:2px}.goal input[readonly]{opacity:.65}
+.mh h2{flex:1}.rw{display:flex;align-items:center;border-bottom:1px solid var(--line)}.rw .res{flex:1;min-width:0;border-bottom:0}.mh .cp{border:0;background:none;color:var(--accent);font-weight:600;margin-right:10px}
+.wl{text-align:center;color:var(--mute);font-size:.8rem}
+.md{background:none;border:0;padding:3px 0;display:flex;justify-content:center}
+.md.sel .dn{background:var(--line)}.md.today .dn{color:var(--accent);font-weight:800}
+.leg{display:flex;gap:14px;justify-content:center;color:var(--mute);font-size:.85rem;margin:10px 0}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:50%;border:3px solid var(--line);margin-right:5px;vertical-align:-2px}
+.leg i.ok{border-color:var(--ok)}.leg i.hi{border-color:var(--over)}.leg i.lo{border-color:var(--low)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0 0}
+.wd{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;color:var(--mute)}
+.wd b{font-size:1.05rem;color:var(--ink)}
+.wd i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.wd.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.wd.today b{color:var(--accent)}
+.wd.ok i{background:var(--ok)}.wd.hi i{background:var(--over)}.wd.lo i{background:var(--low)}
+:root{--bg:#E9E2F0;--bg2:#DCE6F0;--surface:#F7F3FA;--ink:#2B2540;--mute:#6C6483;--line:#CDC3DA;--accent:#6556A8;--accent-ink:#FFFFFF;--p:#5B85B5;--c:#D39A52;--f:#C46F82;--pt:#D6E3F1;--ct:#F2E0C6;--ft:#EFD4DC;--ok:#5A9C78;--low:#D2A23F;--over:#C0555F;--t1:#F2DCC9;--t2:#D6E6DA;--t3:#D3E1EF;--t4:#E4D7EE;--soft:rgba(43,37,64,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1D1829;--bg2:#17202E;--surface:#2A2440;--ink:#EEE9F6;--mute:#ABA3C2;--line:#403858;--accent:#A99DE6;--accent-ink:#1B1536;--p:#86AADB;--c:#E2B274;--f:#DB8C9A;--pt:#2D3A52;--ct:#4A3F2E;--ft:#4D3039;--ok:#7DC09A;--low:#E2BA62;--over:#DE7D86;--t1:#3D2F37;--t2:#2B3B35;--t3:#2B3949;--t4:#37294B;--soft:rgba(255,255,255,.1)}}
+:root[data-theme="dark"]{--bg:#1D1829;--bg2:#17202E;--surface:#2A2440;--ink:#EEE9F6;--mute:#ABA3C2;--line:#403858;--accent:#A99DE6;--accent-ink:#1B1536;--p:#86AADB;--c:#E2B274;--f:#DB8C9A;--pt:#2D3A52;--ct:#4A3F2E;--ft:#4D3039;--ok:#7DC09A;--low:#E2BA62;--over:#DE7D86;--t1:#3D2F37;--t2:#2B3B35;--t3:#2B3949;--t4:#37294B;--soft:rgba(255,255,255,.1)}
+body{background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;min-height:100vh}
+.hero{background:var(--surface);border-radius:28px;padding:22px 12px;margin:16px 0 12px;box-shadow:0 6px 24px rgba(60,40,100,.10)}
+.macros div{border:0;border-left:5px solid var(--p);background:var(--pt)}
+.macros div:nth-child(2){border-left-color:var(--c);background:var(--ct)}
+.macros div:nth-child(3){border-left-color:var(--f);background:var(--ft)}
+#meals .meal{border:0;border-radius:20px}
+#meals .meal:nth-child(1){background:var(--t1)}#meals .meal:nth-child(2){background:var(--t2)}#meals .meal:nth-child(3){background:var(--t3)}#meals .meal:nth-child(4){background:var(--t4)}
+#meals .it{border-top-color:var(--soft)}
+.add{border:1.5px dashed var(--accent)}
+.nav,.wd{border-color:transparent;box-shadow:0 2px 8px rgba(60,40,100,.08)}
+.panel{border-radius:26px 26px 0 0}
+.btn{border-radius:14px}
+.macros div{border:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:14px 6px 12px}
+.tx{margin:0;min-width:0}
+.vb{position:relative;display:block;width:46px;height:96px;border-radius:14px;background:var(--soft);overflow:hidden;flex:none}
+.vb i{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:14px;background:var(--line);transition:height .5s,background .5s}
+.card{display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:26px;padding:16px 14px;margin:16px 0 12px;box-shadow:0 6px 24px rgba(60,40,100,.10)}
+.card .hero{background:none;box-shadow:none;padding:0;margin:0;flex:none}
+.card .ring{width:clamp(112px,36vw,140px);height:clamp(112px,36vw,140px)}
+.card .ctr .big{font-size:1.5rem;line-height:1.1;text-align:center}
+.card .ctr .big small{display:block;font-size:.75rem}
+.card .cap{font-size:.68rem;max-width:84px;text-align:center;line-height:1.2;margin-top:2px}
+.card .macros{flex:1;min-width:0;margin:0;gap:4px}
+.card .macros div,.card .macros div:nth-child(2),.card .macros div:nth-child(3){background:none;padding:0;gap:6px}
+.card .vb{width:100%;max-width:34px;height:108px;border-radius:12px}
+.card .vb i{border-radius:12px}
+.card .macros b{font-size:.78rem;white-space:nowrap}
+.card .macros span{font-size:.68rem}
+input,select,textarea{font-size:16px}
+select{font-family:inherit}
+html{-webkit-text-size-adjust:100%}
+.sheet.kb{align-items:flex-start}
+.sheet.kb .panel{max-height:100%;border-radius:0 0 22px 22px;padding-bottom:12px}
+.sheet.kb .panel h3{display:none}
+#sheet,#sheet.kb{align-items:flex-start}
+#sheet .panel,#sheet.kb .panel{margin-top:calc(env(safe-area-inset-top,0px) + 12px);max-height:min(calc(100% - 24px),calc(100vh - 420px));min-height:220px;border-radius:22px;padding-bottom:16px}
+#sheet.kb .panel h3{display:block}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <button class="nav" id="prev" aria-label="Předchozí týden">‹</button>
+    <h1 id="dt"></h1>
+    <button class="nav" id="cal" aria-label="Měsíční přehled"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button>
+    <button class="nav" id="next" aria-label="Další týden">›</button>
+  </div>
+  <div class="week" id="week"></div>
+  <div class="card"><section class="hero">
+    <div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tr" cx="60" cy="60" r="52" fill="none" stroke-width="11"/><circle class="pr" id="pr" cx="60" cy="60" r="52" fill="none" stroke-width="11" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg><div class="ctr"><div class="big" id="rem">0</div><div class="cap" id="cap"></div></div></div>
+    
+    
+  </section>
+  <section class="macros">
+    <div><em class="vb"><i id="bp"></i></em><p class="tx"><b id="mp">0 g</b><span>Bílkoviny</span></p></div>
+    <div><em class="vb"><i id="bc"></i></em><p class="tx"><b id="mc">0 g</b><span>Sacharidy</span></p></div>
+    <div><em class="vb"><i id="bf"></i></em><p class="tx"><b id="mf">0 g</b><span>Tuky</span></p></div>
+  </section></div>
+  <button class="btn alt" id="prof" style="margin:0 0 18px">Profil a cíle</button>
+  
+  
+  <div id="meals"></div>
+  <p class="lbl" style="text-align:center;margin-top:18px">Produkty z databáze <a href="https://world.openfoodfacts.org" style="color:var(--accent)">Open Food Facts</a> (licence ODbL). Hodnoty vkládají uživatelé, ověř je podle obalu.</p>
+</main>
+
+<div class="sheet" id="sheet">
+  <div class="panel" role="dialog" aria-modal="true">
+    <h3 id="sh">Přidat potravinu</h3>
+    <div id="s1">
+      <input class="field" id="q" placeholder="Hledat potravinu" autocomplete="off">
+      <div id="res"></div><div id="off"></div>
+      <button class="btn alt" id="own">Vlastní potravina</button>
+    </div>
+    <div id="s2" class="hide">
+      <div class="lbl" id="pn"></div>
+      <div class="row"><div><div class="lbl" id="gl">Gramy</div><input class="field" type="number" id="gr" value="100" min="1" inputmode="decimal" aria-label="Množství v gramech"></div><div><div class="lbl">Kalorie</div><input class="field" type="number" id="kc" inputmode="decimal" aria-label="Kalorie"></div></div>
+      <div class="lbl" id="pv"></div><div class="lbl" id="p1"></div>
+      <button class="btn" id="ok">Přidat do deníku</button>
+    </div>
+    <div id="s3" class="hide">
+      <input class="field" id="cn" placeholder="Název">
+      <select class="field" id="cm"><option value="1">Hodnoty na celou porci (krabička, hotové jídlo)</option><option value="0">Hodnoty na 100 g</option><option value="2">Hodnoty na 1 g</option></select>
+      <div class="row"><input class="field" type="number" id="ck" placeholder="kcal" inputmode="decimal"><input class="field" type="number" id="cp" placeholder="Bílkoviny" inputmode="decimal"></div>
+      <div class="row"><input class="field" type="number" id="cs" placeholder="Sacharidy" inputmode="decimal"><input class="field" type="number" id="cf" placeholder="Tuky" inputmode="decimal"></div>
+      <button class="btn" id="cok">Uložit a vybrat</button><button class="btn alt hide" id="cdel">Smazat potravinu</button>
+    </div>
+    <button class="btn alt" id="close">Zavřít</button>
+  </div>
+</div>
+
+<div class="sheet" id="msheet"><div class="panel" role="dialog" aria-modal="true"><div class="top"><button class="nav" id="mprev" aria-label="Předchozí měsíc">‹</button><h3 id="mt" style="margin:0;text-transform:capitalize"></h3><button class="nav" id="mnext" aria-label="Další měsíc">›</button></div><div class="month" id="month"></div><div class="leg"><span><i class="ok"></i>V cíli</span><span><i class="lo"></i>Pod cílem</span><span><i class="hi"></i>Nad cílem</span></div><div class="lbl" id="mstat" style="text-align:center"></div><button class="btn alt" id="mclose">Zavřít</button></div></div>
+<div class="sheet" id="psheet"><div class="panel" role="dialog" aria-modal="true"><h3 id="ph"></h3><p class="lbl" id="pi"></p><input class="field" id="pname" placeholder="Jméno (nepovinné)" autocomplete="off"><div class="lbl">Denní cíl makroživin</div><div class="mg" style="margin:0 0 8px"><label>B (g)<input type="number" id="gp" min="0" inputmode="numeric" placeholder="bílkoviny"></label><label>S (g)<input type="number" id="gc" min="0" inputmode="numeric" placeholder="sacharidy"></label><label>T (g)<input type="number" id="gf" min="0" inputmode="numeric" placeholder="tuky"></label></div><label class="goal" style="margin-bottom:6px">Denní cíl <input type="number" id="goal" min="500" max="8000" step="50" inputmode="numeric"> kcal</label><div class="lbl" id="gh" style="margin-bottom:12px"></div><div class="lbl" style="margin-top:6px">Záloha dat</div><div class="lbl" id="bk"></div><div class="row"><button class="btn alt" id="bdl">Stáhnout</button><button class="btn alt" id="bim">Načíst ze souboru</button></div><button class="btn alt" id="brs">Obnovit ze zálohy</button><input type="file" id="bf" accept=".json,application/json" class="hide"><button class="btn" id="psave">Uložit profil</button><button class="btn alt" id="pskip">Přeskočit</button></div></div>
+<div class="sheet" id="csheet"><div class="panel" role="dialog" aria-modal="true"><h3 id="cph"></h3><div class="lbl">Na který den</div><input class="field" type="date" id="cpd"><div id="cpmw"><div class="lbl">Do jídla</div><select class="field" id="cpm"><option value="0">Snídaně</option><option value="1">Svačina</option><option value="2">Oběd</option><option value="3">Večeře</option></select></div><div class="lbl" id="cpr"></div><button class="btn" id="cpok">Zkopírovat</button><button class="btn alt" id="cpx">Zavřít</button></div></div>
+<script>
+// název, kcal, bílkoviny, sacharidy, tuky (na 100 g)
+const BASE=[["Chléb pšenično-žitný",245,8,48,1.5],["Rohlík",290,9,56,2],["Houska",285,9,55,2],["Ovesné vločky",370,13,60,7],["Rýže vařená",130,2.7,28,0.3],["Těstoviny vařené",160,5.5,31,1],["Brambory vařené",77,2,17,0.1],["Kuřecí prsa",110,23,0,1.5],["Kuřecí stehno bez kůže",140,20,0,6],["Vepřová panenka",120,21,0,4],["Hovězí mleté",220,18,0,16],["Šunka výběrová",105,18,1,3],["Losos",200,20,0,13],["Tuňák ve vlastní šťávě",110,25,0,1],["Vejce slepičí",143,12.5,0.7,10],["Mléko polotučné",47,3.4,4.8,1.5],["Jogurt bílý",60,4,5,3],["Tvaroh polotučný",100,12,3.5,4],["Eidam 30 %",260,29,0,16],["Mozzarella",250,18,1,19],["Máslo",740,0.7,0.6,81],["Olivový olej",900,0,0,100],["Jablko",52,0.3,12,0.2],["Banán",90,1,21,0.3],["Pomeranč",47,0.9,10,0.2],["Jahody",33,0.7,7,0.3],["Borůvky",50,0.7,11,0.4],["Rajče",18,0.9,3.5,0.2],["Okurka",14,0.7,2.5,0.1],["Paprika",27,1,5,0.3],["Mrkev",36,0.9,8,0.2],["Brokolice",34,2.8,4,0.4],["Cibule",40,1.1,8,0.1],["Čočka vařená",115,9,16,0.4],["Cizrna vařená",165,9,22,3],["Mandle",600,21,10,52],["Vlašské ořechy",650,15,7,65],["Arašídové máslo",600,25,12,50],["Hořká čokoláda 70 %",580,8,35,42],["Mléčná čokoláda",540,7,57,31],["Med",320,0.4,80,0],["Cukr",400,0,100,0],["Pivo 12°",43,0.4,3.5,0],["Víno bílé",70,0.1,2,0],["Cola",42,0,10.6,0],["Pizza Margherita",250,11,32,9],["Hranolky",310,3.5,40,15],["Knedlík houskový",190,5,38,1.5],["Smažený sýr",300,14,18,19],["Svíčková omáčka",75,1.5,8,4]];
+const MEALS=["Snídaně","Svačina","Oběd","Večeře"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const r1=n=>Math.round(n*10)/10;const r3=n=>Math.round(n*1000)/1000;
+let S={goal:2000,days:{},custom:[],mg:{p:0,c:0,f:0},name:"",pdone:false,hist:[]};
+try{const x=JSON.parse(localStorage.getItem("kdenik"));if(x)S=Object.assign(S,x)}catch(e){}
+let cdb=null,cuid=null,ct=null;const save=()=>{try{localStorage.setItem("kdenik",JSON.stringify(S))}catch(e){}push()};
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+let cur=new Date(),meal=0,pick=null,editIx=null;
+const foods=()=>BASE.concat(S.custom);
+const items=()=>S.days[iso(cur)]||[];
+
+function render(){
+  $("dt").textContent=cur.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
+  const it=items();
+  const T=it.reduce((a,i)=>({k:a.k+i.k,p:a.p+i.p,c:a.c+i.c,f:a.f+i.f}),{k:0,p:0,c:0,f:0});
+  if(S.mg.p>0||S.mg.c>0||S.mg.f>0)S.goal=Math.round(S.mg.p*4+S.mg.c*4+S.mg.f*9);const G=gf(iso(cur)),left=Math.round(G.goal-T.k),over=left<0;
+  $("rem").innerHTML=Math.round(T.k)+" <small>/ "+G.goal+"</small>";
+  $("rem").className="big"+(over?" over":"");
+  $("cap").textContent=over?"o "+Math.abs(left)+" kcal nad cílem":"zbývá "+left+" kcal";
+  const ratio=Math.min(1,T.k/G.goal),pr=$("pr");pr.style.strokeDashoffset=326.7*(1-ratio);pr.style.stroke=over?"var(--over)":"hsl("+Math.round(ratio*130)+",42%,50%)";
+  $("mp").textContent=Math.round(T.p)+(G.mg.p>0?"/"+G.mg.p:"")+" g";$("mc").textContent=Math.round(T.c)+(G.mg.c>0?"/"+G.mg.c:"")+" g";$("mf").textContent=Math.round(T.f)+(G.mg.f>0?"/"+G.mg.f:"")+" g";
+  [["bp","p"],["bc","c"],["bf","f"]].forEach(a=>{const g=G.mg[a[1]],v=T[a[1]],r=g>0?Math.min(1,v/g):0,el=$(a[0]);el.style.height=Math.round(r*100)+"%";el.style.background=g>0&&v>g?"var(--over)":"hsl("+Math.round(r*130)+",42%,50%)"});
+  const has=S.mg.p>0||S.mg.c>0||S.mg.f>0;$("goal").value=S.goal;$("goal").readOnly=has;$("prof").textContent=S.name?S.name+" · profil a cíle":"Profil a cíle";[["gp","p"],["gc","c"],["gf","f"]].forEach(a=>{if(document.activeElement!==$(a[0]))$(a[0]).value=S.mg[a[1]]||""});$("gh").textContent=has?"Cíl kalorií se počítá z makroživin (B a S po 4 kcal, T po 9 kcal na gram). Pro ruční zadání kalorií vymaž makra.":"";
+  const dow=(cur.getDay()+6)%7,mon=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-dow),td=iso(new Date());
+  $("week").innerHTML=["Po","Út","St","Čt","Pá","So","Ne"].map((n,i)=>{const d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i),k=iso(d),l=S.days[k]||[],r=l.reduce((a,x)=>a+x.k,0)/gf(k).goal,cl=!l.length?"":r>1.1?"hi":r<0.9?"lo":"ok";return `<button class="wd ${cl}${k===iso(cur)?" sel":""}${k===td?" today":""}" data-d="${k}" aria-label="${d.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"})}"><span>${n}</span><b class="dn">${d.getDate()}</b></button>`}).join("");
+  $("meals").innerHTML=MEALS.map((m,mi)=>{
+    const list=it.map((x,ix)=>({x,ix})).filter(o=>o.x.m===mi);
+    const sum=Math.round(list.reduce((a,o)=>a+o.x.k,0));
+    return `<div class="meal"><div class="mh"><h2>${m}</h2>${list.length?`<button class="cp" data-cpm="${mi}">Kopírovat</button>`:""}<span>${sum} kcal</span></div>`+
+      list.map(o=>`<div class="it"><div data-edit="${o.ix}" style="cursor:pointer"><span class="n">${esc(o.x.n)}</span><small>${o.x.g} ${o.x.u?"porce":"g"} · B ${r1(o.x.p)} · S ${r1(o.x.c)} · T ${r1(o.x.f)}</small></div><b>${Math.round(o.x.k)}</b><button class="x" data-cpi="${o.ix}" aria-label="Kopírovat ${esc(o.x.n)}">⧉</button><button class="x" data-del="${o.ix}" aria-label="Odstranit ${esc(o.x.n)}">×</button></div>`).join("")+
+      `<button class="add" data-meal="${mi}">Přidat k tomuto jídlu</button></div>`}).join("");
+}
+
+function open(mi){editIx=null;meal=mi;$("sh").textContent="Přidat: "+MEALS[mi];show("s1");$("q").value="";list();$("sheet").classList.add("on");$("q").focus()}
+function show(id){["s1","s2","s3"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
+function list(){
+  const q=$("q").value.trim().toLowerCase();
+  const n=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const use=usage(),res=foods().filter(f=>!q||n(f[0].toLowerCase()).includes(n(q))).sort((a,b)=>{const ua=use[a[0]]||{t:0,m:[0,0,0,0]},ub=use[b[0]]||{t:0,m:[0,0,0,0]};return ub.m[meal]-ua.m[meal]||ub.t-ua.t}).slice(0,12);
+  $("res").innerHTML=res.length?res.map((f,i)=>`<div class="rw"><button class="res" data-n="${esc(f[0])}"><span>${esc(f[0])}</span><small>${(f[5]?Math.round(f[1]/100)+" kcal / porce":f[1]+" kcal / 100 g")+(use[f[0]]?" · "+use[f[0]].t+"×":"")}</small></button>${S.custom.indexOf(f)>=0?`<button class="x" data-ed="${esc(f[0])}" aria-label="Upravit ${esc(f[0])}">✎</button>`:""}</div>`).join(""):'<p class="lbl">Nic nenalezeno. Přidej vlastní potravinu.</p>';offSearch(q)
+}
+function choose(name){pick=foods().find(f=>f[0]===name);$("pn").textContent=pick[0];$("gr").value=pick[5]?1:100;prev();show("s2");$("gr").select()}
+function prev(skip){const g=parseFloat($("gr").value)||0;$("gl").textContent=pick[5]?"Porce":"Gramy";$("p1").textContent=pick[5]?"":"1 g = "+r3(pick[1]/100)+" kcal · B "+r3(pick[2]/100)+" · S "+r3(pick[3]/100)+" · T "+r3(pick[4]/100)+" g (× "+g+")";if(!skip)$("kc").value=Math.round(pick[1]*g/100);$("pv").textContent=Math.round(pick[1]*g/100)+" kcal · B "+r1(pick[2]*g/100)+" g · S "+r1(pick[3]*g/100)+" g · T "+r1(pick[4]*g/100)+" g"}
+
+$("meals").addEventListener("click",e=>{
+  const c1=e.target.closest("[data-cpi]");if(c1)return openCp("i",+c1.dataset.cpi);const c2=e.target.closest("[data-cpm]");if(c2)return openCp("m",+c2.dataset.cpm);
+  const a=e.target.closest("[data-meal]");if(a)return open(+a.dataset.meal);
+  const d=e.target.closest("[data-del]");if(d){const k=iso(cur);S.days[k].splice(+d.dataset.del,1);save();render();return}
+  const ed=e.target.closest("[data-edit]");if(ed){const x=items()[+ed.dataset.edit];if(!x)return;meal=x.m;editIx=+ed.dataset.edit;pick=[x.n,x.k/x.g*100,x.p/x.g*100,x.c/x.g*100,x.f/x.g*100,x.u];$("sh").textContent="Upravit: "+x.n;$("pn").textContent=x.n;$("gr").value=x.g;prev();show("s2");$("sheet").classList.add("on")}
+});
+$("res").addEventListener("click",e=>{const g=e.target.closest("[data-ed]");if(g){const i=S.custom.findIndex(f=>f[0]===g.dataset.ed);if(i<0)return;const f=S.custom[i],por=!!f[5],m=por?100:1;ced=i;$("cn").value=f[0];$("ck").value=r3(f[1]/m);$("cp").value=r3(f[2]/m);$("cs").value=r3(f[3]/m);$("cf").value=r3(f[4]/m);$("cm").value=por?"1":"0";$("cdel").classList.remove("hide");$("cok").textContent="Uložit změny";show("s3");return}const b=e.target.closest("[data-n]");if(b)choose(b.dataset.n)});
+let offT=null,offC=null,OFFR=[];
+function offMap(p){const n=p.nutriments||{};const k=n["energy-kcal_100g"]??(n["energy_100g"]!=null?n["energy_100g"]/4.184:null),pr=n.proteins_100g,c=n.carbohydrates_100g,f=n.fat_100g;if(!p.product_name||[k,pr,c,f].some(v=>v==null||isNaN(+v)))return null;const kk=+k,est=4*pr+4*c+9*f,bad=Math.abs(kk-est)>Math.max(25,est*.25);const b=Array.isArray(p.brands)?p.brands.join(", "):(p.brands||"");return{n:p.product_name+(b?" ("+b.split(",")[0].trim()+")":""),v:[kk,+pr,+c,+f],bad,code:p.code}}
+function offShow(){$("off").innerHTML=OFFR.length?'<div class="lbl" style="margin-top:10px">Open Food Facts</div>'+OFFR.map((o,i)=>`<div class="rw"><button class="res" data-off="${i}"><span>${esc(o.n)}${o.bad?" ⚠":""}</span><small>${Math.round(o.v[0])} kcal / 100 g</small></button></div>`).join(""):'<p class="lbl">V Open Food Facts nic s úplnými hodnotami.</p>'}
+function offSearch(q){clearTimeout(offT);if(offC)offC.abort();const box=$("off");if(q.length<3){box.innerHTML="";OFFR=[];return}box.innerHTML='<p class="lbl">Open Food Facts: hledám…</p>';offT=setTimeout(async()=>{offC=new AbortController();const sig=offC.signal;try{let hits=null;try{const r=await fetch("https://search.openfoodfacts.org/search?q="+encodeURIComponent(q)+"&page_size=15&fields=code,product_name,brands,nutriments",{signal:sig});if(r.ok){const j=await r.json();hits=j.hits||[]}}catch(e){if(e.name==="AbortError")return}
+if(!hits||!hits.length){const r=await fetch("https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=15&fields=code,product_name,brands,nutriments",{signal:sig});const j=await r.json();hits=j.products||[]}
+OFFR=hits.map(offMap).filter(Boolean).slice(0,12);offShow()}catch(e){if(e.name==="AbortError")return;box.innerHTML='<p class="lbl">Online hledání v Open Food Facts tu není dostupné (blokované připojení nebo bez internetu).</p>'}},500)}
+$("off").addEventListener("click",e=>{const b=e.target.closest("[data-off]");if(!b)return;const o=OFFR[+b.dataset.off];if(!o)return;pick=[o.n,o.v[0],o.v[1],o.v[2],o.v[3]];pick.off=true;$("pn").textContent=o.n+(o.bad?" – ⚠ kalorie nesedí k makrům, ověř podle obalu":"");$("gr").value=100;prev();show("s2");$("gr").select()});
+$("off").addEventListener("mousedown",e=>{if(e.target.closest("button"))e.preventDefault()});
+$("q").addEventListener("input",list);
+$("res").addEventListener("mousedown",e=>{if(e.target.closest("button"))e.preventDefault()});
+$("gr").addEventListener("input",()=>prev());
+$("kc").addEventListener("input",()=>{const k=parseFloat($("kc").value);if(k>0&&pick[1]>0){$("gr").value=r1(k/pick[1]*100);prev(true)}});
+$("ok").onclick=()=>{
+  const g=parseFloat($("gr").value);if(!g||g<=0)return;
+  if(pick.off&&!S.custom.some(f=>f[0]===pick[0])&&!BASE.some(f=>f[0]===pick[0]))S.custom.push([pick[0],pick[1],pick[2],pick[3],pick[4]]);
+  const k=iso(cur);const o={m:meal,n:pick[0],g:r1(g),k:pick[1]*g/100,p:pick[2]*g/100,c:pick[3]*g/100,f:pick[4]*g/100,u:pick[5]?1:0};
+  S.days[k]=S.days[k]||[];if(editIx!==null&&S.days[k][editIx])S.days[k][editIx]=o;else S.days[k].push(o);editIx=null;
+  save();render();$("sheet").classList.remove("on")};
+$("own").onclick=()=>{ced=null;["cn","ck","cp","cs","cf"].forEach(i=>$(i).value="");$("cm").value="1";$("cdel").classList.add("hide");$("cok").textContent="Uložit a vybrat";show("s3")};
+$("cok").onclick=()=>{
+  const n=$("cn").value.trim(),k=parseFloat($("ck").value);if(!n||isNaN(k))return;
+  const v=$("cm").value,por=v==="1",m=v==="0"?1:100;const f=[n,k*m,(parseFloat($("cp").value)||0)*m,(parseFloat($("cs").value)||0)*m,(parseFloat($("cf").value)||0)*m];if(por)f.push(true);
+  const wasEd=ced!==null&&!!S.custom[ced];if(wasEd)S.custom[ced]=f;else S.custom.push(f);ced=null;save();["cn","ck","cp","cs","cf"].forEach(i=>$(i).value="");if(wasEd){show("s1");list()}else choose(n)};
+$("close").onclick=()=>$("sheet").classList.remove("on");
+$("sheet").addEventListener("click",e=>{if(e.target===$("sheet"))$("sheet").classList.remove("on")});
+["input","change"].forEach(ev=>$("goal").addEventListener(ev,e=>{const v=parseInt(e.target.value);if(v>=500&&v<=8000){snap();S.goal=v;upd();save();render()}}));
+$("prev").onclick=()=>{cur.setDate(cur.getDate()-7);render()};
+$("week").addEventListener("click",e=>{const b=e.target.closest("[data-d]");if(b){const p=b.dataset.d.split("-");cur=new Date(+p[0],+p[1]-1,+p[2]);render()}});
+$("dt").onclick=()=>{cur=new Date();render()};
+const pop=first=>{$("ph").textContent=first?"Vítej! Vytvoř si profil":"Tvůj profil";$("pi").textContent=first?"Nastav si denní cíle. Budou platit každý den, dokud je tady nezměníš.":"Změna platí od dneška dál, dřívější dny zůstanou podle původního cíle.";$("pname").value=S.name||"";$("psheet").classList.add("on")};
+const pdone=()=>{S.name=$("pname").value.trim();S.pdone=true;save();$("psheet").classList.remove("on");render()};
+$("prof").onclick=()=>pop(false);$("psave").onclick=pdone;$("pskip").onclick=pdone;
+const vv=window.visualViewport;
+function fit(){if(!vv)return;const kb=vv.height<window.innerHeight-120;document.querySelectorAll(".sheet").forEach(s=>{s.style.top=vv.offsetTop+"px";s.style.bottom="auto";s.style.height=vv.height+"px";s.classList.toggle("kb",kb)})}
+if(vv){vv.addEventListener("resize",fit);vv.addEventListener("scroll",fit);fit()}
+let cp=null,ced=null;
+function cg(){if(S.mg.p>0||S.mg.c>0||S.mg.f>0)S.goal=Math.round(S.mg.p*4+S.mg.c*4+S.mg.f*9)}
+function snap(){if(!S.hist.length)S.hist.push({d:"0000-00-00",goal:S.goal,mg:Object.assign({},S.mg)})}
+function upd(){const t=iso(new Date());let e=S.hist.find(x=>x.d===t);if(!e){e={d:t};S.hist.push(e);S.hist.sort((a,b)=>a.d<b.d?-1:1)}e.goal=S.goal;e.mg=Object.assign({},S.mg)}
+function gf(k){let e=null;for(const x of S.hist)if(x.d<=k)e=x;if(!e&&S.hist.length)e=S.hist[0];return e?{goal:e.goal,mg:e.mg}:{goal:S.goal,mg:S.mg}}
+function usage(){const u={};Object.keys(S.days).forEach(k=>S.days[k].forEach(x=>{const o=u[x.n]||(u[x.n]={t:0,m:[0,0,0,0]});o.t++;o.m[x.m]++}));return u}
+$("cdel").onclick=()=>{const b=$("cdel");if(ced===null)return;if(!b.dataset.c){b.dataset.c=1;b.textContent="Opravdu smazat? Klepni znovu";setTimeout(()=>{delete b.dataset.c;b.textContent="Smazat potravinu"},4000);return}delete b.dataset.c;b.textContent="Smazat potravinu";S.custom.splice(ced,1);ced=null;save();list();show("s1")};
+function openCp(t,i){cp={t,i};const x=t==="m"?null:items()[i];$("cph").textContent=t==="m"?"Kopírovat: "+MEALS[i]:"Kopírovat: "+x.n;$("cpm").value=t==="m"?i:x.m;$("cpmw").classList.toggle("hide",t==="m");const d=new Date(cur);d.setDate(d.getDate()+1);$("cpd").value=iso(d);$("cpr").textContent="";$("csheet").classList.add("on")}
+$("cpok").onclick=()=>{const k=$("cpd").value;if(!k||!cp)return;const src=items();const add=cp.t==="m"?src.filter(x=>x.m===cp.i).map(x=>Object.assign({},x)):[Object.assign({},src[cp.i],{m:+$("cpm").value})];S.days[k]=(S.days[k]||[]).concat(add);save();render();const p=k.split("-");$("cpr").textContent="Zkopírováno na "+new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("cs-CZ")+" ✓"};
+$("cpx").onclick=()=>$("csheet").classList.remove("on");
+$("csheet").addEventListener("click",e=>{if(e.target===$("csheet"))$("csheet").classList.remove("on")});
+const ref=()=>cdb.collection("data/users/"+cuid).doc("diary");
+function setBk(at){$("bk").textContent=cdb?(at?"Poslední záloha v cloudu: "+new Date(at).toLocaleString("cs-CZ"):"Záloha se vytvoří automaticky po první změně."):"Data jsou uložená jen v tomto prohlížeči. Zálohuj je tlačítkem Stáhnout a vrátíš je přes Načíst ze souboru."}
+function push(){if(!cdb)return;clearTimeout(ct);ct=setTimeout(async()=>{try{const at=Date.now();await ref().set({json:JSON.stringify(S),at});setBk(at)}catch(e){$("bk").textContent="Záloha se nepovedla."}},1500)}
+function restore(json){try{const o=JSON.parse(json);if(!o||typeof o.days!=="object")throw 0;S=Object.assign({goal:2000,days:{},custom:[],mg:{p:0,c:0,f:0},name:"",pdone:true,hist:[]},o);save();render();return true}catch(e){return false}}
+async function cinit(){try{if(!window.claude)return;const u=await claude.use("user"),d=await claude.use("db");if(!u||!d){setBk(0);return}cdb=d;cuid=await u.id();const s=await ref().get();if(s.exists&&!Object.keys(S.days).length&&!S.pdone&&restore(s.data().json))$("psheet").classList.remove("on");setBk(s.exists?s.data().at:0)}catch(e){setBk(0)}}
+$("brs").onclick=async()=>{const b=$("brs");if(!cdb){setBk(0);return}if(!b.dataset.c){b.dataset.c=1;b.textContent="Přepsat data? Klepni znovu";setTimeout(()=>{delete b.dataset.c;b.textContent="Obnovit ze zálohy"},4000);return}delete b.dataset.c;b.textContent="Obnovit ze zálohy";try{const s=await ref().get();$("bk").textContent=s.exists&&restore(s.data().json)?"Obnoveno ze zálohy.":"Záloha nenalezena."}catch(e){$("bk").textContent="Obnovení se nepovedlo."}};
+$("bdl").onclick=()=>{try{const u=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="jidelni-denik-"+iso(new Date())+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);$("bk").textContent="Záloha stažena."}catch(e){$("bk").textContent="Stažení se nepovedlo."}};
+$("bim").onclick=()=>$("bf").click();
+$("bf").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("bk").textContent=restore(r.result)?"Načteno ze souboru.":"Soubor se nepodařilo načíst."};r.readAsText(f);e.target.value=""});
+cinit();
+if(!S.pdone)pop(true);
+[["gp","p"],["gc","c"],["gf","f"]].forEach(a=>$(a[0]).addEventListener("input",e=>{snap();S.mg[a[1]]=Math.max(0,Math.min(2000,parseInt(e.target.value)||0));cg();upd();save();render()}));
+let mv=null;
+function status(k){const l=S.days[k]||[];if(!l.length)return"";const r=l.reduce((a,x)=>a+x.k,0)/gf(k).goal;return r>1.1?"hi":r<0.9?"lo":"ok"}
+function month(){
+  const y=mv.getFullYear(),m=mv.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate(),td=iso(new Date());
+  $("mt").textContent=mv.toLocaleDateString("cs-CZ",{month:"long",year:"numeric"});
+  let h=["Po","Út","St","Čt","Pá","So","Ne"].map(n=>`<div class="wl">${n}</div>`).join("")+"<div></div>".repeat(first);
+  const st={ok:0,hi:0,lo:0};for(let d=1;d<=days;d++){const k=iso(new Date(y,m,d));if(status(k))st[status(k)]++;h+=`<button class="md ${status(k)}${k===iso(cur)?" sel":""}${k===td?" today":""}" data-d="${k}"><span class="dn">${d}</span></button>`}
+  $("month").innerHTML=h;$("mstat").textContent="V cíli: "+st.ok+" · pod cílem: "+st.lo+" · nad cílem: "+st.hi+" dní"}
+$("cal").onclick=()=>{mv=new Date(cur.getFullYear(),cur.getMonth(),1);month();$("msheet").classList.add("on")};
+$("mprev").onclick=()=>{mv.setMonth(mv.getMonth()-1);month()};
+$("mnext").onclick=()=>{mv.setMonth(mv.getMonth()+1);month()};
+$("month").addEventListener("click",e=>{const b=e.target.closest("[data-d]");if(b){const p=b.dataset.d.split("-");cur=new Date(+p[0],+p[1]-1,+p[2]);$("msheet").classList.remove("on");render()}});
+$("mclose").onclick=()=>$("msheet").classList.remove("on");
+$("msheet").addEventListener("click",e=>{if(e.target===$("msheet"))$("msheet").classList.remove("on")});
+$("next").onclick=()=>{cur.setDate(cur.getDate()+7);render()};
+render();
+</script>
+</body>
+</html>
